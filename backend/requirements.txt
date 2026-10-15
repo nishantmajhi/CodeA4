@@ -1,0 +1,31 @@
+# Web layer
+flask==3.0.3
+gunicorn==22.0.0
+flask-cors==4.0.1
+python-dotenv==1.0.1
+
+# Job queue and shared state (Backend Plan §1). Redis holds session/job
+# records as well as the queue, so the web and worker processes agree on
+# status — see models.py.
+redis==5.0.8
+rq==1.16.2
+
+# Stage 1/2 — imaging and character extraction
+opencv-python-headless==4.10.0.84
+numpy==1.26.4
+
+# Stage 3 — clustering and drift fitting
+scikit-learn==1.5.1
+
+# Stage 8 — vector SVG to PDF. cairosvg needs libcairo2 from the OS
+# (installed in the Dockerfile); pypdf binds the per-page PDFs together.
+cairosvg==2.7.1
+pypdf==4.3.1
+
+# Stage 7 — web push notifications. Optional: with no VAPID keys configured
+# the app runs normally and simply does not send notifications.
+pywebpush==2.0.0
+
+# Development and tests
+pytest==8.3.2
+pillow==10.4.0

@@ -1,0 +1,1032 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>CodeA4</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Times New Roman", Times, serif;
+        max-width: 720px;
+        margin: 48px auto 100px;
+        padding: 0 24px;
+        color: #000;
+        background: #fff;
+        line-height: 1.55;
+        font-size: 16px;
+      }
+      header {
+        text-align: center;
+      }
+      header h1 {
+        font-size: 30px;
+        margin: 0 0 2px;
+        letter-spacing: 0.5px;
+      }
+      header p {
+        margin: 2px 0;
+      }
+      header .status {
+        font-style: italic;
+        font-size: 14px;
+        margin-top: 10px;
+      }
+      hr {
+        border: none;
+        border-top: 1px solid #000;
+        margin: 26px 0;
+      }
+
+      .skip-link {
+        position: absolute;
+        left: -9999px;
+        top: auto;
+        background: #fff;
+        color: #000;
+        border: 1px solid #000;
+        padding: 8px 14px;
+        font-family: "Times New Roman", Times, serif;
+      }
+      .skip-link:focus {
+        position: static;
+        display: inline-block;
+        margin-bottom: 12px;
+      }
+
+      h2 {
+        font-size: 20px;
+        margin: 0 0 8px;
+      }
+      h2:focus {
+        outline: none;
+      }
+      .step-count {
+        margin: 2px 0 12px;
+        font-size: 13px;
+        font-style: italic;
+        color: #555;
+      }
+      h3 {
+        font-size: 16px;
+        margin: 20px 0 6px;
+      }
+      p {
+        margin: 8px 0;
+      }
+
+      a {
+        color: #000;
+      }
+      nav p.label {
+        margin: 0 0 6px;
+        font-weight: bold;
+      }
+      nav ol {
+        margin: 0;
+        padding-left: 0;
+        list-style: none;
+      }
+      nav li {
+        margin: 3px 0;
+      }
+      .navlink {
+        border: none;
+        background: none;
+        padding: 0;
+        font-size: 16px;
+        text-decoration: underline;
+        cursor: pointer;
+        font-family: "Times New Roman", Times, serif;
+        color: #000;
+      }
+      .navlink:disabled {
+        color: #999;
+        text-decoration: none;
+        cursor: not-allowed;
+      }
+      nav li.current .navlink {
+        font-weight: bold;
+        text-decoration: none;
+      }
+      nav li.done .navlink::after {
+        content: " - done";
+        font-weight: normal;
+        font-style: italic;
+        color: #555;
+      }
+
+      section[hidden] {
+        display: none;
+      }
+
+      .abstract {
+        border: 1px solid #000;
+        padding: 14px 18px;
+        margin: 14px 0 20px;
+        font-size: 14.5px;
+      }
+      .abstract p {
+        margin: 0;
+      }
+      .abstract .k {
+        font-weight: bold;
+      }
+
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 12px 0 6px;
+        font-size: 15px;
+        border-top: 2px solid #000;
+        border-bottom: 2px solid #000;
+      }
+      th,
+      td {
+        padding: 7px 10px;
+        text-align: left;
+        vertical-align: top;
+        border: none;
+      }
+      th {
+        font-weight: bold;
+        border-bottom: 1px solid #000;
+      }
+
+      pre,
+      code {
+        font-family: "Courier New", Courier, monospace;
+      }
+      pre {
+        border: 1px solid #000;
+        padding: 14px;
+        margin: 10px 0;
+        white-space: pre-wrap;
+        font-size: 14px;
+        overflow-x: auto;
+      }
+
+      fieldset {
+        border: 1px solid #000;
+        padding: 14px 18px;
+        margin: 14px 0;
+      }
+      fieldset.drag-over {
+        border-style: dashed;
+        border-width: 2px;
+      }
+      legend {
+        font-weight: bold;
+        padding: 0 6px;
+      }
+
+      button,
+      input,
+      select {
+        font-family: "Times New Roman", Times, serif;
+        font-size: 15px;
+      }
+      button {
+        padding: 6px 16px;
+        border: 1px solid #000;
+        background: #000;
+        color: #fff;
+        cursor: pointer;
+        border-radius: 0;
+      }
+      button:hover:not(:disabled) {
+        background: #fff;
+        color: #000;
+      }
+      button:disabled {
+        color: #999;
+        border-color: #999;
+        background: #fff;
+        cursor: not-allowed;
+      }
+      button + button {
+        margin-left: 10px;
+      }
+
+      .nav-buttons {
+        margin-top: 22px;
+        padding-top: 14px;
+        border-top: 1px solid #000;
+        display: flex;
+        justify-content: space-between;
+      }
+      .nav-buttons .spacer {
+        flex: 1;
+      }
+
+      label.checkbox-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 12px;
+        font-size: 14.5px;
+      }
+      label.field-label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 6px;
+      }
+
+      .hint {
+        font-style: italic;
+        color: #444;
+        font-size: 14px;
+        margin-top: 8px;
+      }
+      .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+      }
+
+      .error-box {
+        border: 2px solid #000;
+        padding: 12px 16px;
+        margin: 12px 0;
+        font-size: 14.5px;
+      }
+      .error-box .k {
+        font-weight: bold;
+      }
+
+      .demo-controls {
+        border: 1px dashed #999;
+        padding: 10px 14px;
+        margin: 14px 0;
+        font-size: 13px;
+        color: #444;
+      }
+      .demo-controls legend {
+        font-weight: normal;
+        font-style: italic;
+        color: #666;
+      }
+
+      progress {
+        width: 100%;
+        height: 12px;
+        margin: 12px 0;
+      }
+      progress[hidden] {
+        display: none;
+      }
+
+      dl {
+        display: grid;
+        grid-template-columns: max-content 1fr;
+        gap: 5px 18px;
+        font-size: 15px;
+      }
+      dt {
+        font-weight: bold;
+      }
+      dd {
+        margin: 0;
+      }
+
+      .page-box {
+        border: 1px solid #000;
+        padding: 26px 28px;
+        margin: 12px 0;
+        min-height: 280px;
+      }
+      .filename-header {
+        font-weight: bold;
+        border-bottom: 1px solid #000;
+        padding-bottom: 8px;
+        margin-bottom: 12px;
+      }
+      .code-line {
+        margin: 0 0 2px;
+        font-family: "Courier New", Courier, monospace;
+        font-size: 14.5px;
+        white-space: pre-wrap;
+      }
+
+      .pagelist {
+        padding-left: 20px;
+        margin: 6px 0 14px;
+      }
+      .pagelist li {
+        margin: 3px 0;
+      }
+      .pagelist button {
+        border: none;
+        background: none;
+        text-decoration: underline;
+        padding: 0;
+        cursor: pointer;
+        font-size: 15px;
+        font-family: "Times New Roman", Times, serif;
+        color: #000;
+      }
+      .pagelist button:hover {
+        background: none;
+        color: #000;
+        text-decoration: none;
+      }
+      .pagelist li.current button {
+        font-weight: bold;
+        text-decoration: none;
+      }
+
+      .filerow td.rm button {
+        padding: 2px 8px;
+        font-size: 13px;
+      }
+      .filerow .ext-warning {
+        display: block;
+        font-size: 12px;
+        font-style: italic;
+        color: #555;
+      }
+
+      footer {
+        text-align: center;
+        font-size: 13px;
+        color: #555;
+      }
+    </style>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+
+    <header>
+      <h1>CodeA4</h1>
+      <p>
+        <em
+          >a system for rendering source code in the author's own
+          handwriting</em
+        >
+      </p>
+      <p class="status" id="statusLine" role="status" aria-live="polite">
+        Status: idle - no job running.
+      </p>
+    </header>
+
+    <div class="abstract">
+      <p>
+        <span class="k">Summary.</span> CodeA4 scans a handwriting sample,
+        learns its natural variation and drift, and renders uploaded source
+        files onto print-ready A4 pages that look genuinely handwritten. No
+        syntax colouring, no reformatting - whitespace and indentation are
+        preserved exactly as written in the original file.
+      </p>
+    </div>
+
+    <nav aria-label="Contents">
+      <p class="label">Contents</p>
+      <ol id="toc">
+        <li data-step="capture" class="current">
+          <button class="navlink" data-step="capture" aria-current="step">
+            1. Capture
+          </button>
+        </li>
+        <li data-step="style">
+          <button class="navlink" data-step="style" disabled>
+            2. Your Style
+          </button>
+        </li>
+        <li data-step="code">
+          <button class="navlink" data-step="code" disabled>3. Add Code</button>
+        </li>
+        <li data-step="preview">
+          <button class="navlink" data-step="preview" disabled>
+            4. Preview
+          </button>
+        </li>
+        <li data-step="export">
+          <button class="navlink" data-step="export" disabled>5. Export</button>
+        </li>
+      </ol>
+    </nav>
+
+    <main id="main-content">
+      <!-- 1. CAPTURE -->
+      <section id="panel-capture">
+        <h2 tabindex="-1">1. Capture</h2>
+        <p class="step-count">Step 1 of 5</p>
+        <p>
+          We use the same short copying exercise for all three sheets, because
+          knowing exactly what you were meant to write is what lets us measure
+          your letterforms and how your lines drift, without guesswork.
+        </p>
+
+        <h3>1.1 Exercise sheet</h3>
+        <p>Copy this exactly onto a blank sheet of A4, then photograph it.</p>
+        <pre>
+Write a hello world program in C, including a comment
+explaining what printf does.
+
+Ans:
+#include&lt;stdio.h&gt;
+int main() {
+    printf("Hello, world! 123 &amp;&amp; done.\n");  // prints the message, then moves to a new line
+    return 0;
+}</pre
+        >
+        <p class="hint">
+          Note the second line of the answer is written to run past a natural
+          margin - this is deliberate, so we can observe how you actually wrap a
+          line by hand.
+        </p>
+
+        <h3>1.2 Capture rounds</h3>
+        <p>
+          Three separate sheets, spaced apart, so each is genuinely independent
+          rather than a repeat of the last.
+        </p>
+        <table>
+          <caption class="visually-hidden">
+            Capture round status
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Round</th>
+              <th scope="col">Status</th>
+            </tr>
+          </thead>
+          <tbody id="roundsTable">
+            <tr>
+              <td>1</td>
+              <td>Captured</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>Ready to capture</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>Waiting</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <progress
+          id="captureProgress"
+          hidden
+          aria-label="Processing captured sheet"
+        ></progress>
+
+        <div id="captureError" class="error-box" role="alert" hidden>
+          <p>
+            <span class="k">Capture issue:</span>
+            <span id="captureErrorText"></span>
+          </p>
+          <p><button id="retakeBtn">Retake this sheet</button></p>
+        </div>
+
+        <p id="captureActions">
+          <button id="captureBtn">Capture sheet</button>
+          <button id="skipWaitBtn" hidden>Skip wait (demo only)</button>
+          <button id="captureContinueBtn" hidden>Continue to Your Style</button>
+        </p>
+
+        <label class="checkbox-row">
+          <input type="checkbox" id="notifCheck" />
+          Notify me by browser notification when the next sheet is ready,
+          instead of waiting here
+        </label>
+
+        <p class="hint" id="captureHint" aria-live="polite">
+          Round 1 is in. Take a short break, then come back for round 2 - we
+          process what we have while you're away.
+        </p>
+
+        <fieldset class="demo-controls">
+          <legend>Demo controls</legend>
+          <label class="checkbox-row">
+            <input type="checkbox" id="forceFailCapture" />
+            Simulate a capture issue on the next attempt (for reviewing the
+            error / retry flow)
+          </label>
+        </fieldset>
+      </section>
+
+      <!-- 2. STYLE -->
+      <section id="panel-style" hidden>
+        <h2 tabindex="-1">2. Your Style</h2>
+        <p class="step-count">Step 2 of 5</p>
+        <p>
+          Every letter you wrote across the three sheets, grouped into the small
+          number of ways you naturally form it - plus a model of how your
+          baseline and margin wander and self-correct.
+        </p>
+
+        <h3>2.1 Style sets</h3>
+        <p>
+          Each row is a fully internally-consistent alphabet, built from one
+          cluster per character. (The typefaces shown here are the browser's
+          default generic families, standing in for your real extracted glyphs.)
+        </p>
+        <table class="samples">
+          <caption class="visually-hidden">
+            Extracted style sets and their sample glyphs
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Style</th>
+              <th scope="col">Sample</th>
+              <th scope="col">Share of samples</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Style 1</td>
+              <td
+                style="font-family: serif; font-style: italic; font-size: 19px"
+              >
+                Aa Bb Cc 123
+              </td>
+              <td>41%</td>
+            </tr>
+            <tr>
+              <td>Style 2</td>
+              <td
+                style="font-family: serif; font-weight: bold; font-size: 19px"
+              >
+                Aa Bb Cc 123
+              </td>
+              <td>33%</td>
+            </tr>
+            <tr>
+              <td>Style 3</td>
+              <td style="font-family: monospace; font-size: 19px">
+                Aa Bb Cc 123
+              </td>
+              <td>18%</td>
+            </tr>
+            <tr>
+              <td>Style 4</td>
+              <td style="font-family: cursive; font-size: 19px">
+                Aa Bb Cc 123
+              </td>
+              <td>8%</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>2.2 Drift model</h3>
+        <svg
+          width="280"
+          height="110"
+          viewBox="0 0 280 110"
+          role="img"
+          aria-labelledby="driftTitle driftDesc"
+        >
+          <title id="driftTitle">
+            Baseline and margin drift over the course of writing
+          </title>
+          <desc id="driftDesc">
+            Two wandering curves that drift away from a straight line and
+            gradually correct back, rather than snapping back abruptly.
+          </desc>
+          <line
+            x1="10"
+            y1="55"
+            x2="270"
+            y2="55"
+            stroke="#000"
+            stroke-dasharray="2 3"
+          />
+          <path
+            d="M10,55 C40,42 60,68 90,54 C120,40 140,66 170,52 C200,40 220,62 270,54"
+            fill="none"
+            stroke="#000"
+            stroke-width="1.5"
+          />
+          <path
+            d="M10,55 C30,55 45,76 60,74 C80,71 90,50 110,48 C135,44 150,62 170,60 C195,57 215,46 270,50"
+            fill="none"
+            stroke="#000"
+            stroke-width="1.5"
+            stroke-dasharray="5 4"
+          />
+        </svg>
+        <p class="hint">
+          Solid line: baseline drift, vertical, within a line. Dashed line:
+          margin drift, horizontal, down the page. Both curves are
+          mean-reverting - a gradual wander followed by a gradual correction,
+          never a snap back to the line.
+        </p>
+
+        <div class="nav-buttons">
+          <button class="back-btn" data-target="capture">Back</button>
+          <span class="spacer"></span>
+          <button id="toCodeBtn" class="continue-btn" data-target="code">
+            Continue to Add Code
+          </button>
+        </div>
+      </section>
+
+      <!-- 3. CODE -->
+      <section id="panel-code" hidden>
+        <h2 tabindex="-1">3. Add Code</h2>
+        <p class="step-count">Step 3 of 5</p>
+        <p>
+          Every file becomes its own page (or pages), starting with a
+          handwritten filename header. Indentation and whitespace are kept
+          exactly as written - nothing is reformatted.
+        </p>
+
+        <fieldset id="dropzone">
+          <legend>Source files</legend>
+          <label class="field-label" for="fileInput"
+            >Choose source files, or drag and drop them onto this box</label
+          >
+          <input
+            type="file"
+            id="fileInput"
+            multiple
+            aria-describedby="fileHint"
+          />
+        </fieldset>
+
+        <table id="fileTable" hidden>
+          <caption class="visually-hidden">
+            Files added for rendering
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Filename</th>
+              <th scope="col">Size</th>
+              <th scope="col"><span class="visually-hidden">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody id="fileTableBody"></tbody>
+        </table>
+        <p class="hint" id="fileHint" aria-live="polite">
+          Add at least one file to continue.
+        </p>
+
+        <div class="nav-buttons">
+          <button class="back-btn" data-target="style">Back</button>
+          <span class="spacer"></span>
+          <button
+            id="toPreviewBtn"
+            class="continue-btn"
+            data-target="preview"
+            disabled
+          >
+            Render preview
+          </button>
+        </div>
+      </section>
+
+      <!-- 4. PREVIEW -->
+      <section id="panel-preview" hidden>
+        <h2 tabindex="-1">4. Preview</h2>
+        <p class="step-count">Step 4 of 5</p>
+        <p>
+          Style shifts only at natural breaks - such as a new function - never
+          letter by letter. This preview uses generic fonts as a proxy; real
+          output uses your own extracted glyph vectors.
+        </p>
+
+        <h3>4.1 Pages</h3>
+        <ol class="pagelist" id="pageList">
+          <li class="current">
+            <button data-page="1" aria-current="true">main.py - page 1</button>
+          </li>
+          <li><button data-page="2">main.py - page 2</button></li>
+          <li><button data-page="3">utils.js - page 1</button></li>
+        </ol>
+
+        <h3>4.2 Page preview</h3>
+        <div class="page-box">
+          <p class="filename-header">main.py</p>
+          <div id="codeLines"></div>
+        </div>
+        <p class="hint">
+          Style 1 (serif italic) is used for the <code>def</code> block; Style 2
+          (serif bold) for the <code>class</code> block. Long lines wrap
+          naturally at the page edge, as they would on paper - no continuation
+          marker.
+        </p>
+
+        <div class="nav-buttons">
+          <button class="back-btn" data-target="code">Back</button>
+          <span class="spacer"></span>
+          <button id="toExportBtn" class="continue-btn" data-target="export">
+            Looks good - export
+          </button>
+        </div>
+      </section>
+
+      <!-- 5. EXPORT -->
+      <section id="panel-export" hidden>
+        <h2 tabindex="-1">5. Export</h2>
+        <p class="step-count">Step 5 of 5</p>
+        <p>
+          Print-ready, A4, black ink only, no syntax highlighting - just your
+          handwriting.
+        </p>
+
+        <dl>
+          <dt>Files</dt>
+          <dd>2</dd>
+          <dt>Pages</dt>
+          <dd>3</dd>
+          <dt>Page size</dt>
+          <dd>A4</dd>
+          <dt>Style sets used</dt>
+          <dd>4</dd>
+        </dl>
+
+        <div id="exportError" class="error-box" role="alert" hidden>
+          <p>
+            <span class="k">Export failed:</span> the rendering job timed out
+            before the PDF could be assembled.
+          </p>
+          <p><button id="retryDownloadBtn">Retry download</button></p>
+        </div>
+
+        <p>
+          <button id="downloadBtn">Download PDF</button>
+          <button id="startOverBtn">Start a new file set</button>
+        </p>
+        <p
+          class="hint"
+          id="downloadStatus"
+          role="status"
+          aria-live="polite"
+          hidden
+        >
+          codea4-output.pdf prepared - 3 pages, ready to print.
+        </p>
+
+        <fieldset class="demo-controls">
+          <legend>Demo controls</legend>
+          <label class="checkbox-row">
+            <input type="checkbox" id="forceFailExport" />
+            Simulate an export failure on the next attempt (for reviewing the
+            error / retry flow)
+          </label>
+        </fieldset>
+
+        <div class="nav-buttons">
+          <button class="back-btn" data-target="preview">Back</button>
+          <span class="spacer"></span>
+        </div>
+      </section>
+    </main>
+
+    <hr />
+    <footer>
+      <p>CodeA4 - prototype interface, for design review only.</p>
+    </footer>
+
+    <script>
+      const steps = ['capture','style','code','preview','export'];
+      const panels = document.querySelectorAll('main > section');
+      const tocItems = document.querySelectorAll('#toc li');
+      const navButtons = document.querySelectorAll('.navlink');
+
+      function goTo(step, opts){
+        opts = opts || {};
+        panels.forEach(p => p.hidden = (p.id !== 'panel-' + step));
+        tocItems.forEach(li => li.classList.toggle('current', li.dataset.step === step));
+        navButtons.forEach(b => b.removeAttribute('aria-current'));
+        document.querySelector('.navlink[data-step="'+step+'"]').setAttribute('aria-current', 'step');
+        if(opts.focus !== false){
+          const heading = document.querySelector('#panel-' + step + ' h2');
+          if(heading) heading.focus();
+        }
+      }
+
+      navButtons.forEach(b => b.addEventListener('click', () => { if(!b.disabled) goTo(b.dataset.step); }));
+      document.querySelectorAll('.back-btn').forEach(b => b.addEventListener('click', () => goTo(b.dataset.target)));
+
+      function unlock(step){
+        document.querySelector('.navlink[data-step="'+step+'"]').disabled = false;
+      }
+      function markDone(step){
+        document.querySelector('#toc li[data-step="'+step+'"]').classList.add('done');
+      }
+
+      const statusLine = document.getElementById('statusLine');
+      function setStatus(text){ statusLine.textContent = 'Status: ' + text; }
+
+      /* ---------- 1. Capture ---------- */
+      const captureBtn = document.getElementById('captureBtn');
+      const skipWaitBtn = document.getElementById('skipWaitBtn');
+      const captureContinueBtn = document.getElementById('captureContinueBtn');
+      const captureHint = document.getElementById('captureHint');
+      const captureProgress = document.getElementById('captureProgress');
+      const roundsTable = document.getElementById('roundsTable');
+      const notifCheck = document.getElementById('notifCheck');
+      const forceFailCapture = document.getElementById('forceFailCapture');
+      const captureError = document.getElementById('captureError');
+      const captureErrorText = document.getElementById('captureErrorText');
+      const retakeBtn = document.getElementById('retakeBtn');
+      let round = 2;
+
+      function renderRounds(){
+        const rows = roundsTable.querySelectorAll('tr');
+        rows.forEach((row, i) => {
+          const n = i + 1;
+          const statusCell = row.children[1];
+          if(n < round) statusCell.textContent = 'Captured';
+          else if(n === round) statusCell.textContent = round > 3 ? 'Done' : 'Ready to capture';
+          else statusCell.textContent = 'Waiting';
+        });
+      }
+
+      captureBtn.addEventListener('click', () => {
+        captureBtn.disabled = true;
+        skipWaitBtn.hidden = true;
+        captureError.hidden = true;
+        captureProgress.hidden = false;
+        setStatus('processing round ' + round + ' of 3.');
+        captureHint.textContent = 'Segmenting characters and comparing them against the expected text…';
+
+        setTimeout(() => {
+          captureProgress.hidden = true;
+
+          if(forceFailCapture.checked){
+            forceFailCapture.checked = false;
+            captureErrorText.textContent = 'We couldn\\'t match this sheet to the expected text closely enough - the photo may be blurry, angled, or missing part of the page.';
+            captureError.hidden = false;
+            captureBtn.disabled = false;
+            setStatus('capture issue on round ' + round + '.');
+            captureHint.textContent = 'Retake the sheet and try again, or check the lighting and framing.';
+            retakeBtn.focus();
+            return;
+          }
+
+          captureBtn.disabled = false;
+          round++;
+          renderRounds();
+          if(round > 3){
+            setStatus('style assets ready.');
+            captureHint.textContent = 'All three sheets processed. Your style sets and drift model are ready to review.';
+            captureBtn.hidden = true;
+            captureContinueBtn.hidden = false;
+            markDone('capture');
+            unlock('style');
+            captureContinueBtn.focus();
+          } else {
+            setStatus('waiting on next sheet.');
+            captureHint.textContent = notifCheck.checked
+              ? "We'll send a notification when round " + round + " is ready - feel free to step away."
+              : 'Take a short break, then capture round ' + round + ' whenever you\\'re ready.';
+            skipWaitBtn.hidden = false;
+          }
+        }, 1500);
+      });
+
+      skipWaitBtn.addEventListener('click', () => {
+        captureHint.textContent = 'Ready when you are - capture round ' + round + '.';
+        captureBtn.focus();
+      });
+
+      retakeBtn.addEventListener('click', () => {
+        captureError.hidden = true;
+        setStatus('waiting on round ' + round + '.');
+        captureHint.textContent = 'Ready to try round ' + round + ' again.';
+        captureBtn.focus();
+      });
+
+      captureContinueBtn.addEventListener('click', () => goTo('style'));
+
+      /* ---------- 2. Style ---------- */
+      document.getElementById('toCodeBtn').addEventListener('click', () => {
+        markDone('style'); unlock('code'); goTo('code');
+      });
+
+      /* ---------- 3. Code ---------- */
+      const fileInput = document.getElementById('fileInput');
+      const dropzone = document.getElementById('dropzone');
+      const fileTable = document.getElementById('fileTable');
+      const fileTableBody = document.getElementById('fileTableBody');
+      const toPreviewBtn = document.getElementById('toPreviewBtn');
+      const fileHint = document.getElementById('fileHint');
+      const knownExtensions = ['py','js','ts','java','c','cpp','h','go','rb','rs','cs','php','swift','kt','html','css','sh'];
+      let files = [];
+
+      fileInput.addEventListener('change', e => { addFiles(e.target.files); });
+
+      ['dragenter','dragover'].forEach(ev => dropzone.addEventListener(ev, e => {
+        e.preventDefault(); dropzone.classList.add('drag-over');
+      }));
+      ['dragleave','drop'].forEach(ev => dropzone.addEventListener(ev, e => {
+        e.preventDefault(); dropzone.classList.remove('drag-over');
+      }));
+      dropzone.addEventListener('drop', e => { if(e.dataTransfer.files.length) addFiles(e.dataTransfer.files); });
+
+      function addFiles(list){
+        Array.from(list).forEach(f => files.push(f));
+        renderFiles();
+      }
+      function extOf(name){
+        const parts = name.split('.');
+        return parts.length > 1 ? parts.pop().toLowerCase() : '';
+      }
+      function renderFiles(){
+        fileTableBody.innerHTML = '';
+        files.forEach((f, i) => {
+          const tr = document.createElement('tr');
+          tr.className = 'filerow';
+          const ext = extOf(f.name);
+          const warn = ext && !knownExtensions.includes(ext)
+            ? '<span class="ext-warning">Unrecognized file type - will be treated as plain text.</span>' : '';
+          tr.innerHTML = '<td>'+f.name+warn+'</td><td>'+Math.max(1, Math.round(f.size/1024))+' KB</td><td class="rm"><button data-i="'+i+'">Remove</button></td>';
+          fileTableBody.appendChild(tr);
+        });
+        fileTable.hidden = files.length === 0;
+        fileTableBody.querySelectorAll('button').forEach(btn => btn.addEventListener('click', e => {
+          files.splice(+e.target.dataset.i, 1); renderFiles();
+        }));
+        toPreviewBtn.disabled = files.length === 0;
+        fileHint.textContent = files.length === 0 ? 'Add at least one file to continue.' : files.length + ' file(s) ready.';
+      }
+
+      toPreviewBtn.addEventListener('click', () => {
+        markDone('code'); unlock('preview'); goTo('preview');
+      });
+
+      /* ---------- 4. Preview ---------- */
+      const codeLines = document.getElementById('codeLines');
+      const sampleCode = [
+        ['def greet(name):', 'serif', 'italic', 'normal'],
+        ['    message = f"Hello, {name}! Welcome to CodeA4, your handwritten source companion."', 'serif', 'italic', 'normal'],
+        ['    print(message)', 'serif', 'italic', 'normal'],
+        ['    return message', 'serif', 'italic', 'normal'],
+        ['', 'serif', 'normal', 'normal'],
+        ['class Notebook:', 'serif', 'normal', 'bold'],
+        ['    def __init__(self):', 'serif', 'normal', 'bold'],
+        ['        self.pages = []', 'serif', 'normal', 'bold'],
+        ['', 'serif', 'normal', 'normal'],
+        ['    def add_page(self, content):', 'serif', 'normal', 'bold'],
+        ['        self.pages.append(content)', 'serif', 'normal', 'bold'],
+      ];
+      function renderCode(){
+        codeLines.innerHTML = '';
+        sampleCode.forEach(([text, fam, style, weight]) => {
+          const p = document.createElement('p');
+          p.className = 'code-line';
+          p.textContent = text.length ? text : '\\u00A0';
+          p.style.fontFamily = fam;
+          p.style.fontStyle = style;
+          p.style.fontWeight = weight;
+          codeLines.appendChild(p);
+        });
+      }
+      renderCode();
+
+      document.querySelectorAll('#pageList button').forEach(btn => btn.addEventListener('click', e => {
+        document.querySelectorAll('#pageList li').forEach(li => { li.classList.remove('current'); li.querySelector('button').removeAttribute('aria-current'); });
+        const li = e.target.closest('li');
+        li.classList.add('current');
+        e.target.setAttribute('aria-current', 'true');
+      }));
+
+      document.getElementById('toExportBtn').addEventListener('click', () => {
+        markDone('preview'); unlock('export'); goTo('export');
+      });
+
+      /* ---------- 5. Export ---------- */
+      const downloadBtn = document.getElementById('downloadBtn');
+      const forceFailExport = document.getElementById('forceFailExport');
+      const exportError = document.getElementById('exportError');
+      const retryDownloadBtn = document.getElementById('retryDownloadBtn');
+      const downloadStatus = document.getElementById('downloadStatus');
+
+      function attemptDownload(){
+        exportError.hidden = true;
+        downloadStatus.hidden = true;
+        setStatus('preparing PDF.');
+        setTimeout(() => {
+          if(forceFailExport.checked){
+            forceFailExport.checked = false;
+            setStatus('export failed.');
+            exportError.hidden = false;
+            retryDownloadBtn.focus();
+            return;
+          }
+          setStatus('idle - no job running.');
+          downloadStatus.hidden = false;
+          markDone('export');
+        }, 700);
+      }
+      downloadBtn.addEventListener('click', attemptDownload);
+      retryDownloadBtn.addEventListener('click', attemptDownload);
+
+      document.getElementById('startOverBtn').addEventListener('click', () => {
+        if(window.confirm('Start a new file set? This will discard the current capture, style, and file selections.')){
+          location.reload();
+        }
+      });
+    </script>
+  </body>
+</html>

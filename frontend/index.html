@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CodeA4</title>
+    <meta name="description" content="Render source files as print-ready A4 pages in your own handwriting." />
+    <meta name="theme-color" content="#17140f" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+    <style>
+      * { box-sizing: border-box; }
+
+      :root {
+        --paper: #fbf9f4;
+        --paper-alt: #f2efe6;
+        --ink: #17140f;
+        --ink-soft: #55504a;
+        --ink-faint: #948e83;
+        --rule: #17140f;
+        --red: #8a2c1e;
+        --green: #33512e;
+        --font-serif: Palatino, "Palatino Linotype", "Book Antiqua", Georgia,
+          "Times New Roman", serif;
+        --font-mono: "Courier New", Courier, monospace;
+        --step: 15px 15px;
+      }
+
+      html { -webkit-text-size-adjust: 100%; }
+
+      body {
+        font-family: var(--font-serif);
+        max-width: 760px;
+        margin: 0 auto 100px;
+        padding: 28px 18px 0;
+        color: var(--ink);
+        background: var(--paper);
+        line-height: 1.55;
+        font-size: 16px;
+      }
+
+      @media (min-width: 640px) {
+        body { padding: 48px 24px 0; }
+      }
+
+      /* ---------- header ---------- */
+      header { text-align: center; }
+      header h1 {
+        font-size: 30px;
+        margin: 0 0 2px;
+        letter-spacing: 0.5px;
+      }
+      header p.tagline { margin: 2px 0; color: var(--ink-soft); font-style: italic; }
+      header .status {
+        font-family: var(--font-mono);
+        font-size: 12.5px;
+        margin-top: 12px;
+        color: var(--ink-soft);
+        letter-spacing: 0.2px;
+      }
+
+      hr {
+        border: none;
+        border-top: 1px solid var(--rule);
+        margin: 26px 0;
+      }
+
+      .skip-link {
+        position: absolute;
+        left: -9999px;
+        top: auto;
+        background: var(--paper);
+        color: var(--ink);
+        border: 1px solid var(--ink);
+        padding: 8px 14px;
+        font-family: var(--font-serif);
+        z-index: 20;
+      }
+      .skip-link:focus { position: static; display: inline-block; margin-bottom: 12px; }
+
+      .abstract {
+        border: 1px solid var(--rule);
+        padding: 14px 18px;
+        margin: 18px 0 0;
+        font-size: 14px;
+        color: var(--ink-soft);
+      }
+      .abstract p { margin: 0; }
+      .abstract .k { font-weight: bold; color: var(--ink); }
+
+      /* ---------- stepper ---------- */
+      .stepper { margin: 26px 0 0; }
+      .stepper ol {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        position: relative;
+        justify-content: space-between;
+      }
+      .stepper ol::before {
+        content: "";
+        position: absolute;
+        left: 17px;
+        right: 17px;
+        top: 17px;
+        height: 1px;
+        background: var(--ink-faint);
+        z-index: 0;
+      }
+      .stepper li { position: relative; z-index: 1; flex: 1; text-align: center; }
+      .step-btn {
+        background: none;
+        border: none;
+        font-family: var(--font-serif);
+        color: var(--ink);
+        cursor: pointer;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        width: 100%;
+      }
+      .step-btn:disabled { cursor: not-allowed; }
+      .step-num {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: 1.5px solid var(--ink-faint);
+        background: var(--paper);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        color: var(--ink-faint);
+      }
+      li.done .step-num {
+        background: var(--ink);
+        border-color: var(--ink);
+        color: var(--paper);
+      }
+      li.done .step-num::before { content: "✓"; }
+      li.current .step-num {
+        background: var(--ink);
+        border-color: var(--ink);
+        color: var(--paper);
+        border-width: 2px;
+        box-shadow: 0 0 0 3px var(--paper-alt);
+      }
+      .step-label {
+        font-size: 11.5px;
+        color: var(--ink-faint);
+        max-width: 76px;
+        line-height: 1.25;
+      }
+      li.current .step-label { color: var(--ink); font-weight: bold; }
+      li.done .step-label { color: var(--ink-soft); }
+      @media (max-width: 520px) {
+        .step-label { display: none; }
+        li.current .step-label {
+          display: block;
+          position: absolute;
+          top: 40px;
+          left: 50%;
+          transform: translateX(-50%);
+          white-space: nowrap;
+          max-width: none;
+        }
+      }
+
+      h2 { font-size: 21px; margin: 0 0 8px; }
+      h2:focus { outline: none; }
+      .step-count {
+        margin: 2px 0 14px;
+        font-size: 12.5px;
+        font-family: var(--font-mono);
+        color: var(--ink-faint);
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+      }
+      h3 { font-size: 16px; margin: 22px 0 6px; }
+      p { margin: 8px 0; }
+
+      main { margin-top: 34px; }
+      a { color: var(--ink); }
+
+      section[hidden] { display: none; }
+
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 12px 0 6px;
+        font-size: 14.5px;
+        border-top: 2px solid var(--rule);
+        border-bottom: 2px solid var(--rule);
+      }
+      th, td { padding: 7px 10px; text-align: left; vertical-align: top; border: none; }
+      th { font-weight: bold; border-bottom: 1px solid var(--rule); font-size: 13px; text-transform: uppercase; letter-spacing: 0.3px; }
+      td.status-cell { font-family: var(--font-mono); font-size: 13px; }
+      .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; background: var(--ink-faint); }
+      .dot.done { background: var(--green); }
+      .dot.active { background: var(--ink); }
+
+      pre, code { font-family: var(--font-mono); }
+      pre {
+        border: 1px solid var(--rule);
+        background: var(--paper-alt);
+        padding: 14px;
+        margin: 10px 0;
+        white-space: pre-wrap;
+        font-size: 13.5px;
+        overflow-x: auto;
+      }
+
+      fieldset { border: 1px solid var(--rule); padding: 14px 18px; margin: 14px 0; }
+      fieldset.drag-over { border-style: dashed; border-width: 2px; background: var(--paper-alt); }
+      legend { font-weight: bold; padding: 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.4px; }
+
+      button, input, select {
+        font-family: var(--font-serif);
+        font-size: 15px;
+      }
+
+      .btn {
+        padding: 9px 20px;
+        border: 1.5px solid var(--ink);
+        background: transparent;
+        color: var(--ink);
+        cursor: pointer;
+        transition: background 0.1s, color 0.1s;
+      }
+      .btn.btn-primary { background: var(--ink); color: var(--paper); }
+      .btn.btn-primary:hover:not(:disabled) { background: transparent; color: var(--ink); }
+      .btn.btn-secondary:hover:not(:disabled) { background: var(--ink); color: var(--paper); }
+      .btn.btn-ghost {
+        border: none;
+        padding: 6px 4px;
+        text-decoration: underline;
+        background: none;
+      }
+      .btn.btn-ghost:hover:not(:disabled) { background: none; color: var(--ink-soft); }
+      .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+      .btn + .btn { margin-left: 10px; }
+
+      .nav-buttons {
+        margin-top: 26px;
+        padding-top: 14px;
+        border-top: 1px solid var(--rule);
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .nav-buttons .spacer { flex: 1; }
+
+      label.checkbox-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        margin-top: 12px;
+        font-size: 14px;
+        color: var(--ink-soft);
+      }
+      label.checkbox-row input { margin-top: 3px; }
+      label.field-label { display: block; font-weight: bold; margin-bottom: 6px; }
+
+      .hint { font-style: italic; color: var(--ink-soft); font-size: 13.5px; margin-top: 8px; }
+      .visually-hidden {
+        position: absolute; width: 1px; height: 1px; overflow: hidden;
+        clip: rect(0 0 0 0); white-space: nowrap;
+      }
+
+      .note-box {
+        border: 1px solid var(--ink);
+        border-left: 4px solid var(--ink);
+        padding: 12px 16px;
+        margin: 12px 0;
+        font-size: 14px;
+      }
+      .note-box.state-error { border-left-color: var(--red); }
+      .note-box.state-success { border-left-color: var(--green); }
+      .note-box .k { font-weight: bold; }
+      .note-box.state-error .k { color: var(--red); }
+      .note-box.state-success .k { color: var(--green); }
+
+      .demo-controls {
+        border: 1px dashed var(--ink-faint);
+        padding: 10px 14px;
+        margin: 18px 0 0;
+        font-size: 12.5px;
+        color: var(--ink-faint);
+      }
+      .demo-controls legend { font-weight: normal; font-style: italic; color: var(--ink-faint); }
+
+      progress { width: 100%; height: 3px; margin: 14px 0; accent-color: var(--ink); }
+      progress[hidden] { display: none; }
+
+      dl { display: grid; grid-template-columns: max-content 1fr; gap: 5px 18px; font-size: 15px; }
+      dt { font-weight: bold; }
+      dd { margin: 0; }
+
+      /* ---------- capture viewfinder ---------- */
+      .viewfinder {
+        position: relative;
+        aspect-ratio: 210 / 297;
+        max-width: 260px;
+        margin: 14px auto 6px;
+        background: var(--paper-alt);
+        border: 1px solid var(--ink-faint);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+      }
+      .viewfinder .corner {
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        border: 2px solid var(--ink);
+      }
+      .corner.tl { top: 8px; left: 8px; border-right: none; border-bottom: none; }
+      .corner.tr { top: 8px; right: 8px; border-left: none; border-bottom: none; }
+      .corner.bl { bottom: 8px; left: 8px; border-right: none; border-top: none; }
+      .corner.br { bottom: 8px; right: 8px; border-left: none; border-top: none; }
+      .viewfinder .center-guide {
+        border-top: 1px dashed var(--ink-faint);
+        width: 70%;
+        position: absolute;
+        top: 50%;
+      }
+      .viewfinder .vf-label {
+        font-family: var(--font-mono);
+        font-size: 11.5px;
+        color: var(--ink-faint);
+        text-align: center;
+        max-width: 150px;
+      }
+      .viewfinder.captured { background: var(--paper); border-style: solid; border-color: var(--ink); }
+      .viewfinder-actions {
+        max-width: 260px;
+        margin: 0 auto 14px;
+        text-align: center;
+      }
+      .viewfinder.captured .thumb-lines { width: 100%; }
+      .thumb-lines { display: flex; flex-direction: column; gap: 7px; width: 80%; }
+      .thumb-lines span { height: 2px; background: var(--ink-faint); display: block; }
+      .thumb-lines span:nth-child(1) { width: 92%; }
+      .thumb-lines span:nth-child(2) { width: 70%; }
+      .thumb-lines span:nth-child(3) { width: 84%; }
+      .thumb-lines span:nth-child(4) { width: 55%; }
+      .thumb-lines span:nth-child(5) { width: 78%; }
+
+      /* ---------- style sample cards ---------- */
+      .style-card {
+        border: 1px solid var(--rule);
+        padding: 12px 16px;
+        margin: 10px 0;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+      .style-card .style-meta { min-width: 120px; }
+      .style-card .style-name { font-weight: bold; }
+      .style-card .style-share { font-family: var(--font-mono); font-size: 12px; color: var(--ink-faint); }
+      .style-instances { display: flex; gap: 10px; align-items: flex-end; }
+      .style-instances svg { display: block; }
+      .style-instances .inst-label { font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-faint); text-align: center; margin-top: 2px; }
+
+      /* ---------- file table ---------- */
+      /* The Add Code step already has a lot of horizontal rules — the
+         dropzone's fieldset border, the header underline, and the divider
+         above the navigation buttons. The generic table's thick top and
+         bottom rules push that from structure into noise, so they are
+         dropped here only. Every other table on the page keeps them. */
+      #fileTable { border-top: none; border-bottom: none; }
+      .filerow td.rm button { padding: 3px 10px; font-size: 12.5px; }
+      .filerow .ext-warning { display: block; font-size: 11.5px; font-style: italic; color: var(--ink-faint); }
+
+      /* ---------- preview: thumbnails + canvas ---------- */
+      .preview-layout { display: flex; flex-direction: column; gap: 18px; }
+      @media (min-width: 620px) {
+        .preview-layout { flex-direction: row; align-items: flex-start; }
+        .thumb-rail { width: 150px; flex: none; }
+        .page-canvas-wrap { flex: 1; min-width: 0; }
+      }
+      .thumb-rail { display: flex; flex-direction: row; gap: 10px; overflow-x: auto; padding-bottom: 4px; }
+      @media (min-width: 620px) {
+        .thumb-rail { flex-direction: column; overflow-x: visible; }
+      }
+      .page-thumb {
+        border: none;
+        background: none;
+        cursor: pointer;
+        padding: 0;
+        font-family: var(--font-serif);
+        color: var(--ink);
+        flex: none;
+        width: 84px;
+        text-align: left;
+      }
+      .page-thumb .thumb-face {
+        aspect-ratio: 210 / 297;
+        border: 1px solid var(--ink-faint);
+        background: var(--paper);
+        padding: 8px 7px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .page-thumb .thumb-face span { height: 1.5px; background: var(--ink-faint); display: block; }
+      .page-thumb .thumb-cap {
+        display: block;
+        font-size: 11px;
+        margin-top: 5px;
+        color: var(--ink-soft);
+        line-height: 1.25;
+      }
+      .page-thumb.current .thumb-face { border: 2px solid var(--ink); }
+      .page-thumb.current .thumb-cap { color: var(--ink); font-weight: bold; }
+
+      .page-box {
+        border: 1px solid var(--ink);
+        padding: 26px 28px;
+        min-height: 280px;
+        background: var(--paper);
+        position: relative;
+      }
+      .page-box::before, .page-box::after {
+        content: "";
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        border: 1.5px solid var(--ink-faint);
+      }
+      .page-box::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+      .page-box::after { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+      .filename-header {
+        font-weight: bold;
+        border-bottom: 1px solid var(--rule);
+        padding-bottom: 8px;
+        margin-bottom: 12px;
+      }
+      .code-line { margin: 0 0 2px; font-family: var(--font-mono); font-size: 14px; white-space: pre-wrap; }
+
+      footer { text-align: center; font-size: 12.5px; color: var(--ink-faint); margin-top: 40px; }
+
+      @media (prefers-reduced-motion: reduce) {
+        * { transition: none !important; }
+      }
+    </style>
+  </head>
+  <body>
+
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+
+    <header>
+      <h1>CodeA4</h1>
+      <p class="tagline">a system for rendering source code in the author's own handwriting</p>
+      <p class="status" id="statusLine" role="status" aria-live="polite">status &mdash; idle, no job running</p>
+    </header>
+
+    <div class="abstract">
+      <p>
+        <span class="k">Summary.</span> CodeA4 scans a handwriting sample, learns its natural
+        variation and drift, and renders uploaded source files onto print-ready A4 pages that
+        look genuinely handwritten. No syntax colouring, no reformatting &mdash; whitespace and
+        indentation are preserved exactly as written in the original file.
+      </p>
+    </div>
+
+<nav class="stepper" aria-label="Progress">
+      <ol id="toc">
+        <li data-step="capture" class="current">
+          <button class="step-btn" data-step="capture" aria-current="step">
+            <span class="step-num" aria-hidden="true"></span>
+            <span class="step-label">Capture</span>
+          </button>
+        </li>
+        <li data-step="style">
+          <button class="step-btn" data-step="style" disabled>
+            <span class="step-num" aria-hidden="true"></span>
+            <span class="step-label">Your Style</span>
+          </button>
+        </li>
+        <li data-step="code">
+          <button class="step-btn" data-step="code" disabled>
+            <span class="step-num" aria-hidden="true"></span>
+            <span class="step-label">Add Code</span>
+          </button>
+        </li>
+        <li data-step="preview">
+          <button class="step-btn" data-step="preview" disabled>
+            <span class="step-num" aria-hidden="true"></span>
+            <span class="step-label">Preview</span>
+          </button>
+        </li>
+        <li data-step="export">
+          <button class="step-btn" data-step="export" disabled>
+            <span class="step-num" aria-hidden="true"></span>
+            <span class="step-label">Export</span>
+          </button>
+        </li>
+      </ol>
+    </nav>
+
+    <main id="main-content">
+      <!-- 1. CAPTURE -->
+      <section id="panel-capture">
+        <h2 tabindex="-1">1. Capture</h2>
+        <p class="step-count">Step 1 of 5</p>
+        <p>
+          We use the same short copying exercise for all three sheets, because knowing exactly
+          what you were meant to write is what lets us measure your letterforms and how your
+          lines drift, without guesswork.
+        </p>
+
+        <h3>1.1 Exercise sheet</h3>
+        <p>Copy this exactly onto a blank sheet of A4, then photograph it.</p>
+        <pre id="exerciseText">Loading the exercise&hellip;</pre>
+        <p class="hint" id="exerciseHint">
+          One line is written to run past a natural margin &mdash; this is deliberate, so we can
+          observe how you actually wrap a line by hand.
+        </p>
+
+        <h3>1.2 Photograph the sheet</h3>
+        <p>Line the sheet up inside the corner marks so the whole page is captured square.</p>
+
+        <div class="viewfinder" id="viewfinder">
+          <span class="corner tl"></span>
+          <span class="corner tr"></span>
+          <span class="corner bl"></span>
+          <span class="corner br"></span>
+          <span class="center-guide" aria-hidden="true"></span>
+          <span class="vf-label" id="vfLabel">Tap &ldquo;Use camera&rdquo; and align your A4 sheet within the marks</span>
+        </div>
+
+        <p class="viewfinder-actions">
+          <button id="captureBtn" class="btn btn-primary">Use camera</button>
+          <input type="file" id="photoInput" accept="image/*" capture="environment" hidden />
+        </p>
+
+        <h3>1.3 Capture rounds</h3>
+        <p>Three separate sheets, spaced apart, so each is genuinely independent rather than a repeat of the last.</p>
+        <table>
+          <caption class="visually-hidden">Capture round status</caption>
+          <thead>
+            <tr><th scope="col">Round</th><th scope="col">Status</th></tr>
+          </thead>
+          <tbody id="roundsTable"></tbody>
+        </table>
+
+        <progress id="captureProgress" hidden aria-label="Processing captured sheet"></progress>
+
+        <div id="captureError" class="note-box state-error" role="alert" hidden>
+          <p><span class="k">Capture issue:</span> <span id="captureErrorText"></span></p>
+          <p><button id="retakeBtn" class="btn btn-secondary">Retake this sheet</button></p>
+        </div>
+
+        <p id="captureActions">
+          <button id="captureContinueBtn" class="btn btn-primary" hidden>Continue to Your Style</button>
+        </p>
+
+        <label class="checkbox-row" id="notifRow" hidden>
+          <input type="checkbox" id="notifCheck" />
+          Notify me by browser notification when the next sheet is ready, instead of waiting here
+        </label>
+
+        <p class="hint" id="captureHint" aria-live="polite">
+          Take the three photos whenever suits &mdash; each sheet is processed while you are away.
+        </p>
+      </section>
+
+      <!-- 2. STYLE -->
+      <section id="panel-style" hidden>
+        <h2 tabindex="-1">2. Your Style</h2>
+        <p class="step-count">Step 2 of 5</p>
+        <p>
+          From your three sheets, we grouped each character into the small number of ways you
+          naturally form it &mdash; plus a model of how your baseline and margin wander and self-correct.
+        </p>
+
+        <h3>2.1 Style sets</h3>
+        <p>
+          Each row is a fully internally-consistent alphabet, built from one cluster per
+          character. Every stroke below is traced from your own sheets &mdash; not a stand-in font.
+        </p>
+
+        <div id="styleCards"></div>
+
+        <h3>2.2 Drift model</h3>
+        <svg id="driftChart" width="100%" height="120" viewBox="0 0 460 120" role="img"
+             aria-labelledby="driftTitle driftDesc" style="max-width: 460px; display: block;">
+          <title id="driftTitle">Baseline and margin drift measured from your sheets</title>
+          <desc id="driftDesc">Two wandering curves that drift away from a straight line and gradually correct back, rather than snapping back abruptly.</desc>
+        </svg>
+        <p class="hint" id="driftSummary">
+          Solid line: baseline drift, vertical, within a line. Dashed line: margin drift,
+          horizontal, down the page.
+        </p>
+
+        <div class="nav-buttons">
+          <button class="btn btn-secondary back-btn" data-target="capture">Back</button>
+          <span class="spacer"></span>
+          <button id="toCodeBtn" class="btn btn-primary continue-btn" data-target="code">Continue to Add Code</button>
+        </div>
+      </section>
+
+      <!-- 3. CODE -->
+      <section id="panel-code" hidden>
+        <h2 tabindex="-1">3. Add Code</h2>
+        <p class="step-count">Step 3 of 5</p>
+        <p>
+          Every file becomes its own page (or pages), starting with a handwritten filename
+          header. Indentation and whitespace are kept exactly as written &mdash; nothing is reformatted.
+        </p>
+
+        <fieldset id="dropzone">
+          <legend>Source files</legend>
+          <label class="field-label" for="fileInput">Choose source files, or drag and drop them onto this box</label>
+          <input type="file" id="fileInput" multiple aria-describedby="fileHint" />
+        </fieldset>
+
+        <table id="fileTable" hidden>
+          <caption class="visually-hidden">Files added for rendering</caption>
+          <thead>
+            <tr><th scope="col">Filename</th><th scope="col">Size</th><th scope="col"><span class="visually-hidden">Actions</span></th></tr>
+          </thead>
+          <tbody id="fileTableBody"></tbody>
+        </table>
+        <p class="hint" id="fileHint" aria-live="polite">Add at least one file to continue.</p>
+
+        <progress id="renderProgress" hidden aria-label="Rendering pages"></progress>
+        <div id="renderError" class="note-box state-error" role="alert" hidden>
+          <p><span class="k">Render failed:</span> <span id="renderErrorText"></span></p>
+        </div>
+
+        <div class="nav-buttons">
+          <button class="btn btn-secondary back-btn" data-target="style">Back</button>
+          <span class="spacer"></span>
+          <button id="toPreviewBtn" class="btn btn-primary" disabled>Render preview</button>
+        </div>
+      </section>
+
+      <!-- 4. PREVIEW -->
+      <section id="panel-preview" hidden>
+        <h2 tabindex="-1">4. Preview</h2>
+        <p class="step-count">Step 4 of 5</p>
+        <p>
+          Style shifts only at natural breaks &mdash; such as a new function &mdash; never letter by
+          letter. These are the actual pages that will be exported.
+        </p>
+
+        <div class="preview-layout">
+          <div class="thumb-rail" id="pageList" role="list" aria-label="Pages"></div>
+
+          <div class="page-canvas-wrap">
+            <div class="page-box" id="pageView" aria-live="polite"></div>
+            <p class="hint" id="previewHint">
+              Long lines wrap naturally at the page edge, as they would on paper &mdash; no
+              continuation marker.
+            </p>
+          </div>
+        </div>
+
+        <div class="nav-buttons">
+          <button class="btn btn-secondary back-btn" data-target="code">Back</button>
+          <span class="spacer"></span>
+          <button id="toExportBtn" class="btn btn-primary continue-btn" data-target="export">Looks good &mdash; export</button>
+        </div>
+      </section>
+
+      <!-- 5. EXPORT -->
+      <section id="panel-export" hidden>
+        <h2 tabindex="-1">5. Export</h2>
+        <p class="step-count">Step 5 of 5</p>
+        <p>Print-ready, A4, black ink only, no syntax highlighting &mdash; just your handwriting.</p>
+
+        <dl>
+          <dt>Files</dt><dd id="sumFiles">&mdash;</dd>
+          <dt>Pages</dt><dd id="sumPages">&mdash;</dd>
+          <dt>Page size</dt><dd>A4</dd>
+          <dt>Style sets used</dt><dd id="sumStyles">&mdash;</dd>
+        </dl>
+
+        <div id="exportError" class="note-box state-error" role="alert" hidden>
+          <p><span class="k">Export failed:</span> <span id="exportErrorText"></span></p>
+          <p><button id="retryDownloadBtn" class="btn btn-secondary">Retry download</button></p>
+        </div>
+
+        <p>
+          <button id="downloadBtn" class="btn btn-primary">Download PDF</button>
+          <button id="startOverBtn" class="btn btn-secondary">Start a new file set</button>
+        </p>
+        <div class="note-box state-success" id="downloadStatus" role="status" aria-live="polite" hidden>
+          <p><span class="k">Ready:</span> <span id="downloadStatusText"></span></p>
+        </div>
+
+        <div class="nav-buttons">
+          <button class="btn btn-secondary back-btn" data-target="preview">Back</button>
+          <span class="spacer"></span>
+        </div>
+      </section>
+    </main>
+
+    <hr />
+    <footer>
+      <p>CodeA4 &mdash; your sheets and rendered pages are kept only for this session.</p>
+    </footer>
+
+    <script src="/app.js" defer></script>
+  </body>
+</html>

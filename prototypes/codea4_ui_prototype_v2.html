@@ -1,0 +1,1038 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>CodeA4</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      * { box-sizing: border-box; }
+
+      :root {
+        --paper: #fbf9f4;
+        --paper-alt: #f2efe6;
+        --ink: #17140f;
+        --ink-soft: #55504a;
+        --ink-faint: #948e83;
+        --rule: #17140f;
+        --red: #8a2c1e;
+        --green: #33512e;
+        --font-serif: Palatino, "Palatino Linotype", "Book Antiqua", Georgia,
+          "Times New Roman", serif;
+        --font-mono: "Courier New", Courier, monospace;
+        --step: 15px 15px;
+      }
+
+      html { -webkit-text-size-adjust: 100%; }
+
+      body {
+        font-family: var(--font-serif);
+        max-width: 760px;
+        margin: 0 auto 100px;
+        padding: 28px 18px 0;
+        color: var(--ink);
+        background: var(--paper);
+        line-height: 1.55;
+        font-size: 16px;
+      }
+
+      @media (min-width: 640px) {
+        body { padding: 48px 24px 0; }
+      }
+
+      /* ---------- header ---------- */
+      header { text-align: center; }
+      header h1 {
+        font-size: 30px;
+        margin: 0 0 2px;
+        letter-spacing: 0.5px;
+      }
+      header p.tagline { margin: 2px 0; color: var(--ink-soft); font-style: italic; }
+      header .status {
+        font-family: var(--font-mono);
+        font-size: 12.5px;
+        margin-top: 12px;
+        color: var(--ink-soft);
+        letter-spacing: 0.2px;
+      }
+
+      hr {
+        border: none;
+        border-top: 1px solid var(--rule);
+        margin: 26px 0;
+      }
+
+      .skip-link {
+        position: absolute;
+        left: -9999px;
+        top: auto;
+        background: var(--paper);
+        color: var(--ink);
+        border: 1px solid var(--ink);
+        padding: 8px 14px;
+        font-family: var(--font-serif);
+        z-index: 20;
+      }
+      .skip-link:focus { position: static; display: inline-block; margin-bottom: 12px; }
+
+      .abstract {
+        border: 1px solid var(--rule);
+        padding: 14px 18px;
+        margin: 18px 0 0;
+        font-size: 14px;
+        color: var(--ink-soft);
+      }
+      .abstract p { margin: 0; }
+      .abstract .k { font-weight: bold; color: var(--ink); }
+
+      /* ---------- stepper ---------- */
+      .stepper { margin: 26px 0 0; }
+      .stepper ol {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        position: relative;
+        justify-content: space-between;
+      }
+      .stepper ol::before {
+        content: "";
+        position: absolute;
+        left: 17px;
+        right: 17px;
+        top: 17px;
+        height: 1px;
+        background: var(--ink-faint);
+        z-index: 0;
+      }
+      .stepper li { position: relative; z-index: 1; flex: 1; text-align: center; }
+      .step-btn {
+        background: none;
+        border: none;
+        font-family: var(--font-serif);
+        color: var(--ink);
+        cursor: pointer;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        width: 100%;
+      }
+      .step-btn:disabled { cursor: not-allowed; }
+      .step-num {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: 1.5px solid var(--ink-faint);
+        background: var(--paper);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        color: var(--ink-faint);
+      }
+      li.done .step-num {
+        background: var(--ink);
+        border-color: var(--ink);
+        color: var(--paper);
+      }
+      li.done .step-num::before { content: "✓"; }
+      li.current .step-num {
+        background: var(--ink);
+        border-color: var(--ink);
+        color: var(--paper);
+        border-width: 2px;
+        box-shadow: 0 0 0 3px var(--paper-alt);
+      }
+      .step-label {
+        font-size: 11.5px;
+        color: var(--ink-faint);
+        max-width: 76px;
+        line-height: 1.25;
+      }
+      li.current .step-label { color: var(--ink); font-weight: bold; }
+      li.done .step-label { color: var(--ink-soft); }
+      @media (max-width: 520px) {
+        .step-label { display: none; }
+        li.current .step-label {
+          display: block;
+          position: absolute;
+          top: 40px;
+          left: 50%;
+          transform: translateX(-50%);
+          white-space: nowrap;
+          max-width: none;
+        }
+      }
+
+      h2 { font-size: 21px; margin: 0 0 8px; }
+      h2:focus { outline: none; }
+      .step-count {
+        margin: 2px 0 14px;
+        font-size: 12.5px;
+        font-family: var(--font-mono);
+        color: var(--ink-faint);
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+      }
+      h3 { font-size: 16px; margin: 22px 0 6px; }
+      p { margin: 8px 0; }
+
+      main { margin-top: 34px; }
+      a { color: var(--ink); }
+
+      section[hidden] { display: none; }
+
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 12px 0 6px;
+        font-size: 14.5px;
+        border-top: 2px solid var(--rule);
+        border-bottom: 2px solid var(--rule);
+      }
+      th, td { padding: 7px 10px; text-align: left; vertical-align: top; border: none; }
+      th { font-weight: bold; border-bottom: 1px solid var(--rule); font-size: 13px; text-transform: uppercase; letter-spacing: 0.3px; }
+      td.status-cell { font-family: var(--font-mono); font-size: 13px; }
+      .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; background: var(--ink-faint); }
+      .dot.done { background: var(--green); }
+      .dot.active { background: var(--ink); }
+
+      pre, code { font-family: var(--font-mono); }
+      pre {
+        border: 1px solid var(--rule);
+        background: var(--paper-alt);
+        padding: 14px;
+        margin: 10px 0;
+        white-space: pre-wrap;
+        font-size: 13.5px;
+        overflow-x: auto;
+      }
+
+      fieldset { border: 1px solid var(--rule); padding: 14px 18px; margin: 14px 0; }
+      fieldset.drag-over { border-style: dashed; border-width: 2px; background: var(--paper-alt); }
+      legend { font-weight: bold; padding: 0 6px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.4px; }
+
+      button, input, select {
+        font-family: var(--font-serif);
+        font-size: 15px;
+      }
+
+      .btn {
+        padding: 9px 20px;
+        border: 1.5px solid var(--ink);
+        background: transparent;
+        color: var(--ink);
+        cursor: pointer;
+        transition: background 0.1s, color 0.1s;
+      }
+      .btn.btn-primary { background: var(--ink); color: var(--paper); }
+      .btn.btn-primary:hover:not(:disabled) { background: transparent; color: var(--ink); }
+      .btn.btn-secondary:hover:not(:disabled) { background: var(--ink); color: var(--paper); }
+      .btn.btn-ghost {
+        border: none;
+        padding: 6px 4px;
+        text-decoration: underline;
+        background: none;
+      }
+      .btn.btn-ghost:hover:not(:disabled) { background: none; color: var(--ink-soft); }
+      .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+      .btn + .btn { margin-left: 10px; }
+
+      .nav-buttons {
+        margin-top: 26px;
+        padding-top: 14px;
+        border-top: 1px solid var(--rule);
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .nav-buttons .spacer { flex: 1; }
+
+      label.checkbox-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        margin-top: 12px;
+        font-size: 14px;
+        color: var(--ink-soft);
+      }
+      label.checkbox-row input { margin-top: 3px; }
+      label.field-label { display: block; font-weight: bold; margin-bottom: 6px; }
+
+      .hint { font-style: italic; color: var(--ink-soft); font-size: 13.5px; margin-top: 8px; }
+      .visually-hidden {
+        position: absolute; width: 1px; height: 1px; overflow: hidden;
+        clip: rect(0 0 0 0); white-space: nowrap;
+      }
+
+      .note-box {
+        border: 1px solid var(--ink);
+        border-left: 4px solid var(--ink);
+        padding: 12px 16px;
+        margin: 12px 0;
+        font-size: 14px;
+      }
+      .note-box.state-error { border-left-color: var(--red); }
+      .note-box.state-success { border-left-color: var(--green); }
+      .note-box .k { font-weight: bold; }
+      .note-box.state-error .k { color: var(--red); }
+      .note-box.state-success .k { color: var(--green); }
+
+      .demo-controls {
+        border: 1px dashed var(--ink-faint);
+        padding: 10px 14px;
+        margin: 18px 0 0;
+        font-size: 12.5px;
+        color: var(--ink-faint);
+      }
+      .demo-controls legend { font-weight: normal; font-style: italic; color: var(--ink-faint); }
+
+      progress { width: 100%; height: 3px; margin: 14px 0; accent-color: var(--ink); }
+      progress[hidden] { display: none; }
+
+      dl { display: grid; grid-template-columns: max-content 1fr; gap: 5px 18px; font-size: 15px; }
+      dt { font-weight: bold; }
+      dd { margin: 0; }
+
+      /* ---------- capture viewfinder ---------- */
+      .viewfinder {
+        position: relative;
+        aspect-ratio: 210 / 297;
+        max-width: 260px;
+        margin: 14px auto 6px;
+        background: var(--paper-alt);
+        border: 1px solid var(--ink-faint);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+      }
+      .viewfinder .corner {
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        border: 2px solid var(--ink);
+      }
+      .corner.tl { top: 8px; left: 8px; border-right: none; border-bottom: none; }
+      .corner.tr { top: 8px; right: 8px; border-left: none; border-bottom: none; }
+      .corner.bl { bottom: 8px; left: 8px; border-right: none; border-top: none; }
+      .corner.br { bottom: 8px; right: 8px; border-left: none; border-top: none; }
+      .viewfinder .center-guide {
+        border-top: 1px dashed var(--ink-faint);
+        width: 70%;
+        position: absolute;
+        top: 50%;
+      }
+      .viewfinder .vf-label {
+        font-family: var(--font-mono);
+        font-size: 11.5px;
+        color: var(--ink-faint);
+        text-align: center;
+        max-width: 150px;
+      }
+      .viewfinder.captured { background: var(--paper); border-style: solid; border-color: var(--ink); }
+      .viewfinder-actions {
+        max-width: 260px;
+        margin: 0 auto 14px;
+        text-align: center;
+      }
+      .viewfinder.captured .thumb-lines { width: 100%; }
+      .thumb-lines { display: flex; flex-direction: column; gap: 7px; width: 80%; }
+      .thumb-lines span { height: 2px; background: var(--ink-faint); display: block; }
+      .thumb-lines span:nth-child(1) { width: 92%; }
+      .thumb-lines span:nth-child(2) { width: 70%; }
+      .thumb-lines span:nth-child(3) { width: 84%; }
+      .thumb-lines span:nth-child(4) { width: 55%; }
+      .thumb-lines span:nth-child(5) { width: 78%; }
+
+      /* ---------- style sample cards ---------- */
+      .style-card {
+        border: 1px solid var(--rule);
+        padding: 12px 16px;
+        margin: 10px 0;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+      .style-card .style-meta { min-width: 120px; }
+      .style-card .style-name { font-weight: bold; }
+      .style-card .style-share { font-family: var(--font-mono); font-size: 12px; color: var(--ink-faint); }
+      .style-instances { display: flex; gap: 10px; align-items: flex-end; }
+      .style-instances svg { display: block; }
+      .style-instances .inst-label { font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-faint); text-align: center; margin-top: 2px; }
+
+      /* ---------- file table ---------- */
+      .filerow td.rm button { padding: 3px 10px; font-size: 12.5px; }
+      .filerow .ext-warning { display: block; font-size: 11.5px; font-style: italic; color: var(--ink-faint); }
+
+      /* ---------- preview: thumbnails + canvas ---------- */
+      .preview-layout { display: flex; flex-direction: column; gap: 18px; }
+      @media (min-width: 620px) {
+        .preview-layout { flex-direction: row; align-items: flex-start; }
+        .thumb-rail { width: 150px; flex: none; }
+        .page-canvas-wrap { flex: 1; min-width: 0; }
+      }
+      .thumb-rail { display: flex; flex-direction: row; gap: 10px; overflow-x: auto; padding-bottom: 4px; }
+      @media (min-width: 620px) {
+        .thumb-rail { flex-direction: column; overflow-x: visible; }
+      }
+      .page-thumb {
+        border: none;
+        background: none;
+        cursor: pointer;
+        padding: 0;
+        font-family: var(--font-serif);
+        color: var(--ink);
+        flex: none;
+        width: 84px;
+        text-align: left;
+      }
+      .page-thumb .thumb-face {
+        aspect-ratio: 210 / 297;
+        border: 1px solid var(--ink-faint);
+        background: var(--paper);
+        padding: 8px 7px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .page-thumb .thumb-face span { height: 1.5px; background: var(--ink-faint); display: block; }
+      .page-thumb .thumb-cap {
+        display: block;
+        font-size: 11px;
+        margin-top: 5px;
+        color: var(--ink-soft);
+        line-height: 1.25;
+      }
+      .page-thumb.current .thumb-face { border: 2px solid var(--ink); }
+      .page-thumb.current .thumb-cap { color: var(--ink); font-weight: bold; }
+
+      .page-box {
+        border: 1px solid var(--ink);
+        padding: 26px 28px;
+        min-height: 280px;
+        background: var(--paper);
+        position: relative;
+      }
+      .page-box::before, .page-box::after {
+        content: "";
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        border: 1.5px solid var(--ink-faint);
+      }
+      .page-box::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+      .page-box::after { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+      .filename-header {
+        font-weight: bold;
+        border-bottom: 1px solid var(--rule);
+        padding-bottom: 8px;
+        margin-bottom: 12px;
+      }
+      .code-line { margin: 0 0 2px; font-family: var(--font-mono); font-size: 14px; white-space: pre-wrap; }
+
+      footer { text-align: center; font-size: 12.5px; color: var(--ink-faint); margin-top: 40px; }
+
+      @media (prefers-reduced-motion: reduce) {
+        * { transition: none !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+
+    <header>
+      <h1>CodeA4</h1>
+      <p class="tagline">a system for rendering source code in the author's own handwriting</p>
+      <p class="status" id="statusLine" role="status" aria-live="polite">status — idle, no job running</p>
+    </header>
+
+    <div class="abstract">
+      <p>
+        <span class="k">Summary.</span> CodeA4 scans a handwriting sample, learns its natural
+        variation and drift, and renders uploaded source files onto print-ready A4 pages that
+        look genuinely handwritten. No syntax colouring, no reformatting — whitespace and
+        indentation are preserved exactly as written in the original file.
+      </p>
+    </div>
+
+    <nav class="stepper" aria-label="Progress">
+      <ol id="toc">
+        <li data-step="capture" class="current">
+          <button class="step-btn" data-step="capture" aria-current="step">
+            <span class="step-num" aria-hidden="true"></span>
+            <span class="step-label">Capture</span>
+          </button>
+        </li>
+        <li data-step="style">
+          <button class="step-btn" data-step="style" disabled>
+            <span class="step-num" aria-hidden="true"></span>
+            <span class="step-label">Your Style</span>
+          </button>
+        </li>
+        <li data-step="code">
+          <button class="step-btn" data-step="code" disabled>
+            <span class="step-num" aria-hidden="true"></span>
+            <span class="step-label">Add Code</span>
+          </button>
+        </li>
+        <li data-step="preview">
+          <button class="step-btn" data-step="preview" disabled>
+            <span class="step-num" aria-hidden="true"></span>
+            <span class="step-label">Preview</span>
+          </button>
+        </li>
+        <li data-step="export">
+          <button class="step-btn" data-step="export" disabled>
+            <span class="step-num" aria-hidden="true"></span>
+            <span class="step-label">Export</span>
+          </button>
+        </li>
+      </ol>
+    </nav>
+
+    <main id="main-content">
+      <!-- 1. CAPTURE -->
+      <section id="panel-capture">
+        <h2 tabindex="-1">1. Capture</h2>
+        <p class="step-count">Step 1 of 5</p>
+        <p>
+          We use the same short copying exercise for all three sheets, because knowing exactly
+          what you were meant to write is what lets us measure your letterforms and how your
+          lines drift, without guesswork.
+        </p>
+
+        <h3>1.1 Exercise sheet</h3>
+        <p>Copy this exactly onto a blank sheet of A4, then photograph it.</p>
+        <pre>
+Q1. Write a hello world program in C, including a comment
+explaining what printf does.
+
+Ans:
+#include&lt;stdio.h&gt;
+int main() {
+    printf("Hello, world! 123 &amp;&amp; done.\n");  // prints the message, then moves to a new line
+    return 0;
+}</pre
+        >
+        <p class="hint">
+          Note the second line of the answer is written to run past a natural margin — this is
+          deliberate, so we can observe how you actually wrap a line by hand.
+        </p>
+
+        <h3>1.2 Photograph the sheet</h3>
+        <p>Line the sheet up inside the corner marks so the whole page is captured square.</p>
+
+        <div class="viewfinder" id="viewfinder">
+          <span class="corner tl"></span>
+          <span class="corner tr"></span>
+          <span class="corner bl"></span>
+          <span class="corner br"></span>
+          <span class="center-guide" aria-hidden="true"></span>
+          <span class="vf-label" id="vfLabel">Tap "Use camera" and align your A4 sheet within the marks</span>
+        </div>
+
+        <p class="viewfinder-actions">
+          <button id="captureBtn" class="btn btn-primary">Use camera</button>
+        </p>
+
+        <h3>1.3 Capture rounds</h3>
+        <p>Three separate sheets, spaced apart, so each is genuinely independent rather than a repeat of the last.</p>
+        <table>
+          <caption class="visually-hidden">Capture round status</caption>
+          <thead>
+            <tr><th scope="col">Round</th><th scope="col">Status</th></tr>
+          </thead>
+          <tbody id="roundsTable">
+            <tr><td>1</td><td class="status-cell"><span class="dot done"></span>Captured</td></tr>
+            <tr><td>2</td><td class="status-cell"><span class="dot active"></span>Ready to capture</td></tr>
+            <tr><td>3</td><td class="status-cell"><span class="dot"></span>Waiting</td></tr>
+          </tbody>
+        </table>
+
+        <progress id="captureProgress" hidden aria-label="Processing captured sheet"></progress>
+
+        <div id="captureError" class="note-box state-error" role="alert" hidden>
+          <p><span class="k">Capture issue:</span> <span id="captureErrorText"></span></p>
+          <p><button id="retakeBtn" class="btn btn-secondary">Retake this sheet</button></p>
+        </div>
+
+        <p id="captureActions">
+          <button id="skipWaitBtn" class="btn btn-secondary" hidden>Skip wait (demo only)</button>
+          <button id="captureContinueBtn" class="btn btn-primary" hidden>Continue to Your Style</button>
+        </p>
+
+        <label class="checkbox-row">
+          <input type="checkbox" id="notifCheck" />
+          Notify me by browser notification when the next sheet is ready, instead of waiting here
+        </label>
+
+        <p class="hint" id="captureHint" aria-live="polite">
+          Round 1 is in. Take a short break, then come back for round 2 — we process what we have while you're away.
+        </p>
+
+        <fieldset class="demo-controls">
+          <legend>Demo controls</legend>
+          <label class="checkbox-row">
+            <input type="checkbox" id="forceFailCapture" />
+            Simulate a capture issue on the next attempt (for reviewing the error / retry flow)
+          </label>
+        </fieldset>
+      </section>
+
+      <!-- 2. STYLE -->
+      <section id="panel-style" hidden>
+        <h2 tabindex="-1">2. Your Style</h2>
+        <p class="step-count">Step 2 of 5</p>
+        <p>
+          From your three sheets, we grouped each character into the small number of ways you
+          naturally form it — plus a model of how your baseline and margin wander and self-correct.
+        </p>
+
+        <h3>2.1 Style sets</h3>
+        <p>
+          Each row is a fully internally-consistent alphabet, built from one cluster per
+          character. The strokes below are actual traced instances of the letter "a" pulled
+          from your three sheets — not a stand-in font.
+        </p>
+
+        <div class="style-card">
+          <div class="style-meta">
+            <div class="style-name">Style 1</div>
+            <div class="style-share">41% of samples</div>
+          </div>
+          <div class="style-instances">
+            <div><svg width="30" height="34" viewBox="0 0 30 34"><path d="M8,26 C6,18 9,10 16,10 C22,10 23,18 21,25 C20,29 15,30 12,27" fill="none" stroke="#17140f" stroke-width="1.6" stroke-linecap="round"/><path d="M21,25 C21,20 21,16 21,26" fill="none" stroke="#17140f" stroke-width="1.6" stroke-linecap="round"/></svg><div class="inst-label">1</div></div>
+            <div><svg width="30" height="34" viewBox="0 0 30 34"><path d="M9,25 C7,17 10,9 16,10 C21,11 22,18 20,25 C19,28 14,29 12,26" fill="none" stroke="#17140f" stroke-width="1.6" stroke-linecap="round" transform="rotate(-3 15 18)"/><path d="M20,25 C20,20 21,15 20,26" fill="none" stroke="#17140f" stroke-width="1.6" stroke-linecap="round"/></svg><div class="inst-label">2</div></div>
+            <div><svg width="30" height="34" viewBox="0 0 30 34"><path d="M8,27 C5,18 9,9 16,9 C23,9 23,17 21,25 C20,29 16,30 13,27" fill="none" stroke="#17140f" stroke-width="1.6" stroke-linecap="round" transform="rotate(2 15 18)"/><path d="M21,25 C21,19 22,15 21,27" fill="none" stroke="#17140f" stroke-width="1.6" stroke-linecap="round"/></svg><div class="inst-label">3</div></div>
+          </div>
+        </div>
+
+        <div class="style-card">
+          <div class="style-meta">
+            <div class="style-name">Style 2</div>
+            <div class="style-share">33% of samples</div>
+          </div>
+          <div class="style-instances">
+            <div><svg width="30" height="34" viewBox="0 0 30 34"><path d="M7,27 C5,17 10,8 17,9 C24,10 24,19 21,26 C19,30 14,30 11,26" fill="none" stroke="#17140f" stroke-width="2.4" stroke-linecap="round" transform="skewX(-8)"/><path d="M21,26 C21,20 22,14 21,27" fill="none" stroke="#17140f" stroke-width="2.4" stroke-linecap="round" transform="skewX(-8)"/></svg><div class="inst-label">1</div></div>
+            <div><svg width="30" height="34" viewBox="0 0 30 34"><path d="M8,26 C6,16 11,7 17,8 C23,9 23,18 20,25 C18,29 14,29 12,26" fill="none" stroke="#17140f" stroke-width="2.4" stroke-linecap="round" transform="skewX(-6)"/><path d="M20,25 C20,19 21,13 20,26" fill="none" stroke="#17140f" stroke-width="2.4" stroke-linecap="round" transform="skewX(-6)"/></svg><div class="inst-label">2</div></div>
+            <div><svg width="30" height="34" viewBox="0 0 30 34"><path d="M7,27 C4,17 10,7 17,9 C24,11 24,19 21,26 C19,30 15,31 12,27" fill="none" stroke="#17140f" stroke-width="2.4" stroke-linecap="round" transform="skewX(-9)"/><path d="M21,26 C21,21 22,15 21,27" fill="none" stroke="#17140f" stroke-width="2.4" stroke-linecap="round" transform="skewX(-9)"/></svg><div class="inst-label">3</div></div>
+          </div>
+        </div>
+
+        <div class="style-card">
+          <div class="style-meta">
+            <div class="style-name">Style 3</div>
+            <div class="style-share">18% of samples</div>
+          </div>
+          <div class="style-instances">
+            <div><svg width="30" height="34" viewBox="0 0 30 34"><ellipse cx="15" cy="19" rx="8" ry="8" fill="none" stroke="#17140f" stroke-width="1.4"/><path d="M22,15 C22,20 22,25 22,27" fill="none" stroke="#17140f" stroke-width="1.4" stroke-linecap="round"/></svg><div class="inst-label">1</div></div>
+            <div><svg width="30" height="34" viewBox="0 0 30 34"><ellipse cx="15" cy="19" rx="7.5" ry="8.4" fill="none" stroke="#17140f" stroke-width="1.4" transform="rotate(4 15 19)"/><path d="M21.5,14 C21.5,19 21.5,24 21.5,27" fill="none" stroke="#17140f" stroke-width="1.4" stroke-linecap="round"/></svg><div class="inst-label">2</div></div>
+            <div><svg width="30" height="34" viewBox="0 0 30 34"><ellipse cx="15" cy="19" rx="8.2" ry="7.6" fill="none" stroke="#17140f" stroke-width="1.4" transform="rotate(-3 15 19)"/><path d="M22.4,16 C22.4,21 22.4,25 22.4,27" fill="none" stroke="#17140f" stroke-width="1.4" stroke-linecap="round"/></svg><div class="inst-label">3</div></div>
+          </div>
+        </div>
+
+        <div class="style-card">
+          <div class="style-meta">
+            <div class="style-name">Style 4</div>
+            <div class="style-share">8% of samples</div>
+          </div>
+          <div class="style-instances">
+            <div><svg width="30" height="34" viewBox="0 0 30 34"><path d="M6,24 C6,15 12,10 18,13 C23,15 22,22 17,23 C13,24 10,21 12,18 C14,15 19,15 20,19 C21,23 18,27 14,26" fill="none" stroke="#17140f" stroke-width="1.3" stroke-linecap="round"/></svg><div class="inst-label">1</div></div>
+            <div><svg width="30" height="34" viewBox="0 0 30 34"><path d="M6,24 C6,15 13,9 18,13 C22,16 21,22 16,23 C13,23 10,20 13,17 C15,15 19,16 20,19 C21,23 17,28 14,26" fill="none" stroke="#17140f" stroke-width="1.3" stroke-linecap="round" transform="rotate(3 15 18)"/></svg><div class="inst-label">2</div></div>
+            <div><svg width="30" height="34" viewBox="0 0 30 34"><path d="M7,24 C7,15 12,10 18,12 C23,14 22,21 17,23 C14,24 9,21 12,18 C15,14 19,15 20,18 C22,22 18,27 14,26" fill="none" stroke="#17140f" stroke-width="1.3" stroke-linecap="round" transform="rotate(-4 15 18)"/></svg><div class="inst-label">3</div></div>
+          </div>
+        </div>
+
+        <h3>2.2 Drift model</h3>
+        <svg width="100%" height="120" viewBox="0 0 460 120" role="img" aria-labelledby="driftTitle driftDesc" style="max-width: 460px; display: block;">
+          <title id="driftTitle">Baseline and margin drift over the course of writing</title>
+          <desc id="driftDesc">Two wandering curves that drift away from a straight line and gradually correct back, rather than snapping back abruptly.</desc>
+          <line x1="15" y1="60" x2="445" y2="60" stroke="#948e83" stroke-dasharray="2 3" />
+          <path d="M15,60 C65,42 95,78 145,58 C195,38 225,76 280,54 C330,34 360,72 445,58" fill="none" stroke="#17140f" stroke-width="1.6" />
+          <path d="M15,60 C50,60 74,90 100,86 C132,81 148,50 180,46 C220,40 245,72 280,68 C320,63 355,44 445,50" fill="none" stroke="#17140f" stroke-width="1.6" stroke-dasharray="5 4" />
+        </svg>
+        <p class="hint">
+          Solid line: baseline drift, vertical, within a line. Dashed line: margin drift,
+          horizontal, down the page. Both curves are mean-reverting — a gradual wander followed
+          by a gradual correction, never a snap back to the line.
+        </p>
+
+        <div class="nav-buttons">
+          <button class="btn btn-secondary back-btn" data-target="capture">Back</button>
+          <span class="spacer"></span>
+          <button id="toCodeBtn" class="btn btn-primary continue-btn" data-target="code">Continue to Add Code</button>
+        </div>
+      </section>
+
+      <!-- 3. CODE -->
+      <section id="panel-code" hidden>
+        <h2 tabindex="-1">3. Add Code</h2>
+        <p class="step-count">Step 3 of 5</p>
+        <p>
+          Every file becomes its own page (or pages), starting with a handwritten filename
+          header. Indentation and whitespace are kept exactly as written — nothing is reformatted.
+        </p>
+
+        <fieldset id="dropzone">
+          <legend>Source files</legend>
+          <label class="field-label" for="fileInput">Choose source files, or drag and drop them onto this box</label>
+          <input type="file" id="fileInput" multiple aria-describedby="fileHint" />
+        </fieldset>
+
+        <table id="fileTable" hidden>
+          <caption class="visually-hidden">Files added for rendering</caption>
+          <thead>
+            <tr><th scope="col">Filename</th><th scope="col">Size</th><th scope="col"><span class="visually-hidden">Actions</span></th></tr>
+          </thead>
+          <tbody id="fileTableBody"></tbody>
+        </table>
+        <p class="hint" id="fileHint" aria-live="polite">Add at least one file to continue.</p>
+
+        <div class="nav-buttons">
+          <button class="btn btn-secondary back-btn" data-target="style">Back</button>
+          <span class="spacer"></span>
+          <button id="toPreviewBtn" class="btn btn-primary continue-btn" data-target="preview" disabled>Render preview</button>
+        </div>
+      </section>
+
+      <!-- 4. PREVIEW -->
+      <section id="panel-preview" hidden>
+        <h2 tabindex="-1">4. Preview</h2>
+        <p class="step-count">Step 4 of 5</p>
+        <p>
+          Style shifts only at natural breaks — such as a new function — never letter by letter.
+          This preview uses generic fonts as a proxy; real output uses your own extracted glyph vectors.
+        </p>
+
+        <div class="preview-layout">
+          <div class="thumb-rail" id="pageList" role="list" aria-label="Pages">
+            <button class="page-thumb current" data-page="1" aria-current="true">
+              <span class="thumb-face"><span style="width:78%"></span><span style="width:55%"></span><span style="width:70%"></span><span style="width:40%"></span><span style="width:64%"></span></span>
+              <span class="thumb-cap">main.py<br />page 1</span>
+            </button>
+            <button class="page-thumb" data-page="2">
+              <span class="thumb-face"><span style="width:60%"></span><span style="width:82%"></span><span style="width:45%"></span></span>
+              <span class="thumb-cap">main.py<br />page 2</span>
+            </button>
+            <button class="page-thumb" data-page="3">
+              <span class="thumb-face"><span style="width:70%"></span><span style="width:50%"></span><span style="width:66%"></span><span style="width:35%"></span></span>
+              <span class="thumb-cap">utils.js<br />page 1</span>
+            </button>
+          </div>
+
+          <div class="page-canvas-wrap">
+            <div class="page-box">
+              <p class="filename-header">main.py</p>
+              <div id="codeLines"></div>
+            </div>
+            <p class="hint">
+              Style 1 (upright) is used for the <code>def</code> block; Style 2 (bolder, slanted)
+              for the <code>class</code> block. Long lines wrap naturally at the page edge, as
+              they would on paper — no continuation marker.
+            </p>
+          </div>
+        </div>
+
+        <div class="nav-buttons">
+          <button class="btn btn-secondary back-btn" data-target="code">Back</button>
+          <span class="spacer"></span>
+          <button id="toExportBtn" class="btn btn-primary continue-btn" data-target="export">Looks good — export</button>
+        </div>
+      </section>
+
+      <!-- 5. EXPORT -->
+      <section id="panel-export" hidden>
+        <h2 tabindex="-1">5. Export</h2>
+        <p class="step-count">Step 5 of 5</p>
+        <p>Print-ready, A4, black ink only, no syntax highlighting — just your handwriting.</p>
+
+        <dl>
+          <dt>Files</dt><dd>2</dd>
+          <dt>Pages</dt><dd>3</dd>
+          <dt>Page size</dt><dd>A4</dd>
+          <dt>Style sets used</dt><dd>4</dd>
+        </dl>
+
+        <div id="exportError" class="note-box state-error" role="alert" hidden>
+          <p><span class="k">Export failed:</span> the rendering job timed out before the PDF could be assembled.</p>
+          <p><button id="retryDownloadBtn" class="btn btn-secondary">Retry download</button></p>
+        </div>
+
+        <p>
+          <button id="downloadBtn" class="btn btn-primary">Download PDF</button>
+          <button id="startOverBtn" class="btn btn-secondary">Start a new file set</button>
+        </p>
+        <div class="note-box state-success" id="downloadStatus" role="status" aria-live="polite" hidden>
+          <p><span class="k">Ready:</span> codea4-output.pdf prepared — 3 pages, ready to print.</p>
+        </div>
+
+        <fieldset class="demo-controls">
+          <legend>Demo controls</legend>
+          <label class="checkbox-row">
+            <input type="checkbox" id="forceFailExport" />
+            Simulate an export failure on the next attempt (for reviewing the error / retry flow)
+          </label>
+        </fieldset>
+
+        <div class="nav-buttons">
+          <button class="btn btn-secondary back-btn" data-target="preview">Back</button>
+          <span class="spacer"></span>
+        </div>
+      </section>
+    </main>
+
+    <hr />
+    <footer>
+      <p>CodeA4 — prototype interface, for design review only.</p>
+    </footer>
+
+    <script>
+      const panels = document.querySelectorAll('main > section');
+      const tocItems = document.querySelectorAll('#toc li');
+      const navButtons = document.querySelectorAll('.step-btn');
+
+      function goTo(step, opts){
+        opts = opts || {};
+        panels.forEach(p => p.hidden = (p.id !== 'panel-' + step));
+        tocItems.forEach(li => li.classList.toggle('current', li.dataset.step === step));
+        navButtons.forEach(b => b.removeAttribute('aria-current'));
+        document.querySelector('.step-btn[data-step="'+step+'"]').setAttribute('aria-current', 'step');
+        if(opts.focus !== false){
+          const heading = document.querySelector('#panel-' + step + ' h2');
+          if(heading) heading.focus();
+        }
+      }
+
+      navButtons.forEach(b => b.addEventListener('click', () => { if(!b.disabled) goTo(b.dataset.step); }));
+      document.querySelectorAll('.back-btn').forEach(b => b.addEventListener('click', () => goTo(b.dataset.target)));
+
+      function unlock(step){ document.querySelector('.step-btn[data-step="'+step+'"]').disabled = false; }
+      function markDone(step){ document.querySelector('#toc li[data-step="'+step+'"]').classList.add('done'); }
+
+      const statusLine = document.getElementById('statusLine');
+      function setStatus(text){ statusLine.textContent = 'status — ' + text; }
+
+      /* ---------- 1. Capture ---------- */
+      const captureBtn = document.getElementById('captureBtn');
+      const skipWaitBtn = document.getElementById('skipWaitBtn');
+      const captureContinueBtn = document.getElementById('captureContinueBtn');
+      const captureHint = document.getElementById('captureHint');
+      const captureProgress = document.getElementById('captureProgress');
+      const roundsTable = document.getElementById('roundsTable');
+      const notifCheck = document.getElementById('notifCheck');
+      const forceFailCapture = document.getElementById('forceFailCapture');
+      const captureError = document.getElementById('captureError');
+      const captureErrorText = document.getElementById('captureErrorText');
+      const retakeBtn = document.getElementById('retakeBtn');
+      const viewfinder = document.getElementById('viewfinder');
+      const vfLabel = document.getElementById('vfLabel');
+      let round = 2;
+
+      function renderRounds(){
+        const rows = roundsTable.querySelectorAll('tr');
+        rows.forEach((row, i) => {
+          const n = i + 1;
+          const statusCell = row.children[1];
+          if(n < round) statusCell.innerHTML = '<span class="dot done"></span>Captured';
+          else if(n === round) statusCell.innerHTML = round > 3 ? '<span class="dot done"></span>Done' : '<span class="dot active"></span>Ready to capture';
+          else statusCell.innerHTML = '<span class="dot"></span>Waiting';
+        });
+      }
+
+      captureBtn.addEventListener('click', () => {
+        captureBtn.disabled = true;
+        skipWaitBtn.hidden = true;
+        captureError.hidden = true;
+        captureProgress.hidden = false;
+        viewfinder.classList.remove('captured');
+        vfLabel.textContent = 'Aligning…';
+        setStatus('processing round ' + round + ' of 3');
+        captureHint.textContent = 'Segmenting characters and comparing them against the expected text…';
+
+        setTimeout(() => {
+          captureProgress.hidden = true;
+
+          if(forceFailCapture.checked){
+            forceFailCapture.checked = false;
+            captureErrorText.textContent = 'We couldn\\'t match this sheet to the expected text closely enough — the photo may be blurry, angled, or missing part of the page.';
+            captureError.hidden = false;
+            captureBtn.disabled = false;
+            vfLabel.textContent = 'Tap "Use camera" and align your A4 sheet within the marks';
+            setStatus('capture issue on round ' + round);
+            captureHint.textContent = 'Retake the sheet and try again, or check the lighting and framing.';
+            retakeBtn.focus();
+            return;
+          }
+
+          viewfinder.classList.add('captured');
+          vfLabel.innerHTML = '<span class="thumb-lines"><span></span><span></span><span></span><span></span><span></span></span>';
+          captureBtn.disabled = false;
+          round++;
+          renderRounds();
+          if(round > 3){
+            setStatus('style assets ready');
+            captureHint.textContent = 'All three sheets processed. Your style sets and drift model are ready to review.';
+            captureBtn.hidden = true;
+            captureContinueBtn.hidden = false;
+            markDone('capture');
+            unlock('style');
+            captureContinueBtn.focus();
+          } else {
+            setStatus('waiting on next sheet');
+            captureHint.textContent = notifCheck.checked
+              ? "We'll send a notification when round " + round + " is ready — feel free to step away."
+              : 'Take a short break, then capture round ' + round + ' whenever you\\'re ready.';
+            skipWaitBtn.hidden = false;
+          }
+        }, 1500);
+      });
+
+      skipWaitBtn.addEventListener('click', () => {
+        captureHint.textContent = 'Ready when you are — capture round ' + round + '.';
+        captureBtn.focus();
+      });
+
+      retakeBtn.addEventListener('click', () => {
+        captureError.hidden = true;
+        setStatus('waiting on round ' + round);
+        captureHint.textContent = 'Ready to try round ' + round + ' again.';
+        captureBtn.focus();
+      });
+
+      captureContinueBtn.addEventListener('click', () => goTo('style'));
+
+      /* ---------- 2. Style ---------- */
+      document.getElementById('toCodeBtn').addEventListener('click', () => {
+        markDone('style'); unlock('code'); goTo('code');
+      });
+
+      /* ---------- 3. Code ---------- */
+      const fileInput = document.getElementById('fileInput');
+      const dropzone = document.getElementById('dropzone');
+      const fileTable = document.getElementById('fileTable');
+      const fileTableBody = document.getElementById('fileTableBody');
+      const toPreviewBtn = document.getElementById('toPreviewBtn');
+      const fileHint = document.getElementById('fileHint');
+      const knownExtensions = ['py','js','ts','java','c','cpp','h','go','rb','rs','cs','php','swift','kt','html','css','sh'];
+      let files = [];
+
+      fileInput.addEventListener('change', e => { addFiles(e.target.files); });
+
+      ['dragenter','dragover'].forEach(ev => dropzone.addEventListener(ev, e => {
+        e.preventDefault(); dropzone.classList.add('drag-over');
+      }));
+      ['dragleave','drop'].forEach(ev => dropzone.addEventListener(ev, e => {
+        e.preventDefault(); dropzone.classList.remove('drag-over');
+      }));
+      dropzone.addEventListener('drop', e => { if(e.dataTransfer.files.length) addFiles(e.dataTransfer.files); });
+
+      function addFiles(list){
+        Array.from(list).forEach(f => files.push(f));
+        renderFiles();
+      }
+      function extOf(name){
+        const parts = name.split('.');
+        return parts.length > 1 ? parts.pop().toLowerCase() : '';
+      }
+      function renderFiles(){
+        fileTableBody.innerHTML = '';
+        files.forEach((f, i) => {
+          const tr = document.createElement('tr');
+          tr.className = 'filerow';
+          const ext = extOf(f.name);
+          const warn = ext && !knownExtensions.includes(ext)
+            ? '<span class="ext-warning">Unrecognized file type — will be treated as plain text.</span>' : '';
+          tr.innerHTML = '<td>'+f.name+warn+'</td><td>'+Math.max(1, Math.round(f.size/1024))+' KB</td><td class="rm"><button class="btn btn-ghost" data-i="'+i+'">Remove</button></td>';
+          fileTableBody.appendChild(tr);
+        });
+        fileTable.hidden = files.length === 0;
+        fileTableBody.querySelectorAll('button').forEach(btn => btn.addEventListener('click', e => {
+          files.splice(+e.target.dataset.i, 1); renderFiles();
+        }));
+        toPreviewBtn.disabled = files.length === 0;
+        fileHint.textContent = files.length === 0 ? 'Add at least one file to continue.' : files.length + ' file(s) ready.';
+      }
+
+      toPreviewBtn.addEventListener('click', () => {
+        markDone('code'); unlock('preview'); goTo('preview');
+      });
+
+      /* ---------- 4. Preview ---------- */
+      const codeLines = document.getElementById('codeLines');
+      const sampleCode = [
+        ['def greet(name):', 'normal', 'normal'],
+        ['    message = f"Hello, {name}! Welcome to CodeA4, your handwritten source companion."', 'normal', 'normal'],
+        ['    print(message)', 'normal', 'normal'],
+        ['    return message', 'normal', 'normal'],
+        ['', 'normal', 'normal'],
+        ['class Notebook:', 'italic', 'bold'],
+        ['    def __init__(self):', 'italic', 'bold'],
+        ['        self.pages = []', 'italic', 'bold'],
+        ['', 'normal', 'normal'],
+        ['    def add_page(self, content):', 'italic', 'bold'],
+        ['        self.pages.append(content)', 'italic', 'bold'],
+      ];
+      function renderCode(){
+        codeLines.innerHTML = '';
+        sampleCode.forEach(([text, style, weight]) => {
+          const p = document.createElement('p');
+          p.className = 'code-line';
+          p.textContent = text.length ? text : '\\u00A0';
+          p.style.fontStyle = style;
+          p.style.fontWeight = weight;
+          codeLines.appendChild(p);
+        });
+      }
+      renderCode();
+
+      document.querySelectorAll('#pageList button').forEach(btn => btn.addEventListener('click', e => {
+        document.querySelectorAll('#pageList .page-thumb').forEach(el => { el.classList.remove('current'); el.removeAttribute('aria-current'); });
+        const thumb = e.target.closest('.page-thumb');
+        thumb.classList.add('current');
+        thumb.setAttribute('aria-current', 'true');
+      }));
+
+      document.getElementById('toExportBtn').addEventListener('click', () => {
+        markDone('preview'); unlock('export'); goTo('export');
+      });
+
+      /* ---------- 5. Export ---------- */
+      const downloadBtn = document.getElementById('downloadBtn');
+      const forceFailExport = document.getElementById('forceFailExport');
+      const exportError = document.getElementById('exportError');
+      const retryDownloadBtn = document.getElementById('retryDownloadBtn');
+      const downloadStatus = document.getElementById('downloadStatus');
+
+      function attemptDownload(){
+        exportError.hidden = true;
+        downloadStatus.hidden = true;
+        setStatus('preparing PDF');
+        setTimeout(() => {
+          if(forceFailExport.checked){
+            forceFailExport.checked = false;
+            setStatus('export failed');
+            exportError.hidden = false;
+            retryDownloadBtn.focus();
+            return;
+          }
+          setStatus('idle, no job running');
+          downloadStatus.hidden = false;
+          markDone('export');
+        }, 700);
+      }
+      downloadBtn.addEventListener('click', attemptDownload);
+      retryDownloadBtn.addEventListener('click', attemptDownload);
+
+      document.getElementById('startOverBtn').addEventListener('click', () => {
+        if(window.confirm('Start a new file set? This will discard the current capture, style, and file selections.')){
+          location.reload();
+        }
+      });
+    </script>
+  </body>
+</html>

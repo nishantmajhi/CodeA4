@@ -1,0 +1,56 @@
+# Three processes, as the Backend Plan describes: the web app never runs
+# pipeline stages itself, the worker does nothing else, and Redis carries both
+# the queue and the shared session/job state between them.
+services:
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 5
+
+  web:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      DATA_DIR: /data
+      # Browsers are only allowed to call the API from these origins. Unset,
+      # it is the localhost dev origins -- correct here, because the web
+      # container serves the PWA itself. Set it if the front-end is hosted
+      # somewhere else.
+      CORS_ORIGINS: ${CORS_ORIGINS:-}
+      DATA_RETENTION_SECONDS: ${DATA_RETENTION_SECONDS:-604800}
+      # Set these to enable push notifications (see backend/README.md).
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
+      VAPID_SUBJECT: ${VAPID_SUBJECT:-mailto:admin@example.com}
+    volumes:
+      - data:/data
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    command: python worker.py
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      DATA_DIR: /data
+      DATA_RETENTION_SECONDS: ${DATA_RETENTION_SECONDS:-604800}
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
+      VAPID_SUBJECT: ${VAPID_SUBJECT:-mailto:admin@example.com}
+    volumes:
+      - data:/data
+    depends_on:
+      redis:
+        condition: service_healthy
+
+volumes:
+  data:
